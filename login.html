@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>書庫系統 - 登入</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="login-page">
+
+  <div class="login-card">
+
+    <div class="logo-area">
+      <div class="logo-icon">
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="6" width="24" height="32" rx="2" stroke="#8B1A1A" stroke-width="2"/>
+          <line x1="8" y1="12" x2="32" y2="12" stroke="#8B1A1A" stroke-width="1.5"/>
+          <line x1="13" y1="18" x2="27" y2="18" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="13" y1="23" x2="27" y2="23" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="13" y1="28" x2="21" y2="28" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="16" y="10" width="24" height="32" rx="2" stroke="#8B1A1A" stroke-width="2" fill="#F5F0E8"/>
+          <line x1="16" y1="16" x2="40" y2="16" stroke="#8B1A1A" stroke-width="1.5"/>
+          <line x1="21" y1="22" x2="35" y2="22" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="21" y1="27" x2="35" y2="27" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="21" y1="32" x2="29" y2="32" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="logo-title">書庫系統</div>
+      <div class="logo-subtitle">Books Ordering System</div>
+    </div>
+
+    <div class="form-group">
+      <label for="username">帳號</label>
+      <input type="text" id="username" placeholder="請輸入帳號" />
+    </div>
+
+    <div class="form-group">
+      <label for="password">密碼</label>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="請輸入密碼" />
+        <button class="toggle-password" type="button" onclick="togglePassword()" id="toggle-btn" aria-label="顯示或隱藏密碼"></button>
+      </div>
+    </div>
+
+    <div class="error-message" id="error-message">
+      <!-- 錯誤訊息會顯示在這裡 -->
+    </div>
+
+    <button class="login-btn" id="login-btn" onclick="handleLogin()">登 入</button>
+
+
+
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>
