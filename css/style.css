@@ -888,3 +888,54 @@ body.login-page {
       color: #8B1A1A;
       border-color: #8B1A1A;
     }
+
+/* ========== 分頁 ========== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid #E0D8CC;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover:not(.active):not(.dots) {
+  background: #F5F0E8;
+  border-color: #8B1A1A;
+  color: #8B1A1A;
+}
+
+.page-btn.active {
+  background: #8B1A1A;
+  border-color: #8B1A1A;
+  color: #fff;
+  font-weight: 600;
+}
+
+.page-btn.dots {
+  border: none;
+  background: none;
+  cursor: default;
+  color: #aaa;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

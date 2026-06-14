@@ -2,6 +2,9 @@ let currentRole = '';
     let editingBookId = null;
     let currentView = 'list';
     let totalBooks = 0;
+    let currentPage = 0;
+    const pageSize = 10;
+    let allBooks = [];
 
     function switchView(view) {
       currentView = view;
@@ -11,14 +14,12 @@ let currentRole = '';
       document.getElementById('book-list').style.display = view === 'list' ? 'block' : 'none';
     }
 
-    // 預設切換到清單模式
-    window.addEventListener('load', function() {
-      document.getElementById('btn-grid').classList.remove('active');
-      document.getElementById('btn-list').classList.add('active');
-    });
-
     // 頁面載入時初始化
     window.onload = function() {
+      // 預設切換到清單模式
+      document.getElementById('btn-grid').classList.remove('active');
+      document.getElementById('btn-list').classList.add('active');
+
       let role = sessionStorage.getItem('role');
       let username = sessionStorage.getItem('username');
 
@@ -85,6 +86,55 @@ let currentRole = '';
       if (show) document.getElementById('empty-state').style.display = 'none';
     }
 
+    // 渲染分頁按鈕
+    function renderPagination(total) {
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+      const totalPages = Math.ceil(total / pageSize);
+      if (totalPages <= 1) return;
+
+      // 上一頁
+      const prev = document.createElement('button');
+      prev.className = 'page-btn';
+      prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      prev.disabled = currentPage === 0;
+      prev.onclick = function() { currentPage--; renderBooks(allBooks); };
+      pagination.appendChild(prev);
+
+      // 頁碼
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 0; i < totalPages; i++) pages.push(i);
+      } else {
+        pages.push(0);
+        if (currentPage > 3) pages.push('...');
+        for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) pages.push(i);
+        if (currentPage < totalPages - 4) pages.push('...');
+        pages.push(totalPages - 1);
+      }
+
+      pages.forEach(function(p) {
+        const btn = document.createElement('button');
+        if (p === '...') {
+          btn.className = 'page-btn dots';
+          btn.textContent = '...';
+        } else {
+          btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+          btn.textContent = p + 1;
+          btn.onclick = function() { currentPage = p; renderBooks(allBooks); };
+        }
+        pagination.appendChild(btn);
+      });
+
+      // 下一頁
+      const next = document.createElement('button');
+      next.className = 'page-btn';
+      next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      next.disabled = currentPage >= totalPages - 1;
+      next.onclick = function() { currentPage++; renderBooks(allBooks); };
+      pagination.appendChild(next);
+    }
+
     // 渲染書籍卡片
     function renderBooks(books) {
       const grid = document.getElementById('book-grid');
@@ -95,10 +145,16 @@ let currentRole = '';
         const keyword = document.getElementById('search-input').value.trim();
         empty.textContent = (keyword && totalBooks > 0) ? '查無符合條件的書籍' : '目前書庫尚未上架任何書籍';
         empty.style.display = 'block';
+        document.getElementById('pagination').innerHTML = '';
         return;
       }
 
+      allBooks = books;
       totalBooks = books.length;
+
+      // 取出當頁資料
+      const start = currentPage * pageSize;
+      const pageBooks = books.slice(start, start + pageSize);
 
       empty.style.display = 'none';
 
@@ -108,7 +164,7 @@ let currentRole = '';
       tbody.innerHTML = '';
       thActions.style.display = '';
       thActions.textContent = currentRole === 'ADMIN' ? '操作' : '連結';
-      books.forEach(function(book) {
+      pageBooks.forEach(function(book) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${book.title}</td>
@@ -132,7 +188,9 @@ let currentRole = '';
         tbody.appendChild(tr);
       });
 
-      books.forEach(function(book) {
+      renderPagination(books.length);
+
+      pageBooks.forEach(function(book) {
         const card = document.createElement('div');
         card.className = 'book-card';
         card.innerHTML = `
@@ -205,6 +263,7 @@ let currentRole = '';
 
     // 搜尋
     function handleSearch() {
+      currentPage = 0;
       const keyword = document.getElementById('search-input').value.trim();
       loadBooks(keyword);
     }
