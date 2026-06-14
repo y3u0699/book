@@ -1,6 +1,6 @@
 let currentRole = '';
     let editingBookId = null;
-    let currentView = 'grid';
+    let currentView = 'list';
     let totalBooks = 0;
 
     function switchView(view) {
@@ -10,6 +10,12 @@ let currentRole = '';
       document.getElementById('book-grid').style.display = view === 'grid' ? 'grid' : 'none';
       document.getElementById('book-list').style.display = view === 'list' ? 'block' : 'none';
     }
+
+    // 預設切換到清單模式
+    window.addEventListener('load', function() {
+      document.getElementById('btn-grid').classList.remove('active');
+      document.getElementById('btn-list').classList.add('active');
+    });
 
     // 頁面載入時初始化
     window.onload = function() {
@@ -27,16 +33,8 @@ let currentRole = '';
       document.getElementById('dropdown-username').textContent = username;
 
       // 根據角色切換圖示
-      const adminSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5C9C9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="9" r="3.5"/>
-        <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
-        <path d="M8 6.5c0 0 1-2.5 4-2.5s4 2.5 4 2.5" stroke-linecap="round"/>
-        <path d="M7.5 6.5h9" stroke-linecap="round" stroke-width="2"/>
-      </svg>`;
-      const userSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5C9C9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>`;
+      const adminSVG = `<i id="user-icon" class="fa-solid fa-user-shield" style="font-size:15px;color:#F5C9C9;"></i>`;
+      const userSVG = `<i id="user-icon" class="fa-solid fa-user" style="font-size:15px;color:#F5C9C9;"></i>`;
       document.getElementById('user-icon').outerHTML = role === 'ADMIN' ? adminSVG : userSVG;
 
       // ADMIN 才顯示新增按鈕
@@ -53,7 +51,7 @@ let currentRole = '';
 
       // ↓ 預覽用假資料，之後要拿掉
       const fakeBooks = [
-        { bookId: 1, title: 'Software Engineering', author: 'Ian Sommerville', publisher: 'Pearson', isbn: '9780137035151', price: 850, coverUrl: 'https://covers.openlibrary.org/b/isbn/9780137035151-M.jpg', createdAt: '2026-06-11T10:00:00', updatedAt: '2026-06-11T10:00:00' }
+        { bookId: 1, title: 'Software Engineering', author: 'Ian Sommerville', publisher: 'Pearson', isbn: '9780137035151', price: 850, bookUrl: 'https://www.pearson.com', createdAt: '2026-06-11T10:00:00', updatedAt: '2026-06-11T10:00:00' }
       ];
       const filtered = keyword ? fakeBooks.filter(b => b.title.includes(keyword) || b.author.includes(keyword) || b.publisher.includes(keyword) || b.isbn.includes(keyword)) : fakeBooks;
       setTimeout(function() { showLoading(false); renderBooks(filtered); }, 1000);
@@ -72,8 +70,18 @@ let currentRole = '';
     // 顯示或隱藏載入動畫
     function showLoading(show) {
       document.getElementById('loading-overlay').classList.toggle('show', show);
-      document.getElementById('book-grid').style.display = show ? 'none' : 'grid';
-      document.getElementById('book-list').style.display = 'none';
+      if (!show) {
+        if (currentView === 'grid') {
+          document.getElementById('book-grid').style.display = 'grid';
+          document.getElementById('book-list').style.display = 'none';
+        } else {
+          document.getElementById('book-grid').style.display = 'none';
+          document.getElementById('book-list').style.display = 'block';
+        }
+      } else {
+        document.getElementById('book-grid').style.display = 'none';
+        document.getElementById('book-list').style.display = 'none';
+      }
       if (show) document.getElementById('empty-state').style.display = 'none';
     }
 
@@ -98,7 +106,8 @@ let currentRole = '';
       const tbody = document.getElementById('book-table-body');
       const thActions = document.getElementById('th-actions');
       tbody.innerHTML = '';
-      if (currentRole === 'ADMIN') thActions.style.display = '';
+      thActions.style.display = '';
+      thActions.textContent = currentRole === 'ADMIN' ? '操作' : '連結';
       books.forEach(function(book) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -107,15 +116,18 @@ let currentRole = '';
           <td>${book.publisher}</td>
           <td>${book.isbn}</td>
           <td>NT$ ${book.price}</td>
-          ${currentRole === 'ADMIN' ? `
           <td><div class="td-actions">
+            <button class="link-btn" onclick="${book.bookUrl ? `window.open('${book.bookUrl}', '_blank')` : `alert('此書籍尚無連結')`}" title="開啟連結">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </button>
+            ${currentRole === 'ADMIN' ? `
             <button class="edit-btn" onclick="openEditModal(${book.bookId})" title="修改">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <i class="fa-solid fa-pen-to-square"></i>
             </button>
             <button class="delete-btn" onclick="handleDelete(${book.bookId})" title="刪除">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-            </button>
-          </div></td>` : ''}
+              <i class="fa-solid fa-trash-can"></i>
+            </button>` : ''}
+          </div></td>
         `;
         tbody.appendChild(tr);
       });
@@ -125,9 +137,11 @@ let currentRole = '';
         card.className = 'book-card';
         card.innerHTML = `
           <div class="book-content">
-            <div style="display:flex;gap:16px;">
-              <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
-                <div class="book-title" title="${book.title}">${book.title}</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <div class="book-title" title="${book.title}"
+                  style="${book.bookUrl ? 'cursor:pointer;text-decoration:underline;' : 'cursor:default;'}"
+                  onclick="${book.bookUrl ? `window.open('${book.bookUrl}', '_blank')` : `alert('此書籍尚無連結')`}"
+                >${book.title}</div>
                 <div class="book-author">${book.author}</div>
                 <div class="book-info">
                   出版社：${book.publisher}<br>
@@ -137,28 +151,14 @@ let currentRole = '';
                 </div>
                 <div class="book-price">NT$ ${book.price}</div>
               </div>
-              <div class="book-cover">
-                ${book.coverUrl
-                  ? `<img src="${book.coverUrl}" alt="書封面">`
-                  : `<svg width="32" height="32" viewBox="0 0 52 52" fill="none">
-                      <rect x="8" y="6" width="24" height="32" rx="2" stroke="#8B1A1A" stroke-width="2"/>
-                      <line x1="8" y1="12" x2="32" y2="12" stroke="#8B1A1A" stroke-width="1.5"/>
-                      <rect x="16" y="10" width="24" height="32" rx="2" stroke="#8B1A1A" stroke-width="2" fill="#F5F0E8"/>
-                      <line x1="16" y1="16" x2="40" y2="16" stroke="#8B1A1A" stroke-width="1.5"/>
-                      <line x1="21" y1="22" x2="35" y2="22" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
-                      <line x1="21" y1="27" x2="35" y2="27" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
-                      <line x1="21" y1="32" x2="29" y2="32" stroke="#8B1A1A" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>`
-                }
-              </div>
             </div>
             ${currentRole === 'ADMIN' ? `
             <div class="book-actions-hover">
               <button class="edit-btn" onclick="openEditModal(${book.bookId})" title="修改">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <i class="fa-solid fa-pen-to-square"></i>
               </button>
               <button class="delete-btn" onclick="handleDelete(${book.bookId})" title="刪除">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>` : ''}
           </div>
@@ -236,6 +236,7 @@ let currentRole = '';
           document.getElementById('f-publisher').value = book.publisher;
           document.getElementById('f-isbn').value = book.isbn;
           document.getElementById('f-price').value = book.price;
+          document.getElementById('f-url').value = book.bookUrl || '';
           document.getElementById('modal-overlay').classList.add('show');
         });
     }
@@ -248,7 +249,7 @@ let currentRole = '';
 
     // 清空表單
     function clearForm() {
-      ['f-title','f-author','f-publisher','f-isbn','f-price'].forEach(function(id) {
+      ['f-title','f-author','f-publisher','f-isbn','f-price','f-url'].forEach(function(id) {
         document.getElementById(id).value = '';
       });
       document.getElementById('modal-error').classList.remove('show');
@@ -263,13 +264,14 @@ let currentRole = '';
       const price     = document.getElementById('f-price').value;
 
       // 前端驗證
+      const bookUrl = document.getElementById('f-url').value.trim();
+
       if (!title)     return showModalError('書名不可為空');
       if (!author)    return showModalError('作者不可為空');
       if (!publisher) return showModalError('出版社不可為空');
       if (!isbn)      return showModalError('ISBN 不可為空');
       if (price === '' || Number(price) < 0) return showModalError('價格不可小於 0');
-
-      const body = { title, author, publisher, isbn, price: Number(price) };
+      const body = { title, author, publisher, isbn, price: Number(price), bookUrl };
 
       const url    = editingBookId
         ? 'http://localhost:8080/api/books/' + editingBookId
